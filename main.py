@@ -25,6 +25,7 @@ bot.enable_puid('wxpy_puid.pkl')
 # 配置图灵机器人
 tuLing = Tuling(api_key=API_KEY)
 
+cur = None
 self = bot.self
 coach = ensure_one(bot.search('洪源老师'))
 coach_group = [coach]
@@ -33,6 +34,12 @@ for group in bot.groups(update=True):
         coach_group.append(group)
 
 logger.info('filter coach: %s', coach_group)
+
+
+@bot.register()
+def print_to_terminal(msg):
+    sender = msg.member if msg.member else msg.sender
+    logger.info('%s say: %s', sender.name, msg.text)
 
 
 @bot.register(chats=Friend, msg_types=TEXT)
@@ -180,6 +187,15 @@ def at_me(msg):
         if item in msg.text:
             return True
     return msg.is_at
+
+
+def re(text):
+    global cur
+    if not cur:
+        logger.warning('You should set <cur> var first!')
+        return
+    logger.info('send %s to %s', text, cur.name)
+    cur.send(text)
 
 
 if __name__ == '__main__':
