@@ -64,6 +64,12 @@ logzero.logfile(filename='crazyWx.log', formatter=file_formatter,
 
 logzero.logger.debug("crazyWx init")
 
+
 if __name__ == '__main__':
-    print(DATA_PATH)
-    print(TRAINING_END_STRING)
+    pass
+    # import time
+    # time.sleep(1)
+    # notification.close()
+    # time.sleep(1)
+    # notification.update('update', 'hello')
+    # notification.show()

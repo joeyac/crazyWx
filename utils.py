@@ -29,9 +29,38 @@ def is_busy():
     return False
 
 
-def notification():
-    call(["amixer", "-D", "pulse", "sset", "Master", "50%"], stdout=PIPE)
+# 音量调到50%并打开网易云
+def music():
+    call(["amixer", "-D", "pulse", "sset", "Master", "on"])
+    call(["amixer", "-D", "pulse", "sset", "Master", "50%"])
     call('netease-cloud-music')
+
+
+# 使用Ubuntu 16.04 自带 notify-send
+# 不过需要更新，原版有bug
+# http://www.webupd8.org/2016/05/customize-notifyosd-notification.html
+# 可以通过notify osd config来调整notify dialog参数
+# 终端输入notify-send --help查看帮助
+def notification(user, text=None):
+    avatar_dir = os.path.join(os.getcwd(), 'avatar')
+    if not os.path.isdir(avatar_dir):
+        os.mkdir(avatar_dir)
+
+    avatar = os.path.join(avatar_dir, user.puid + '.jpg')
+
+    if not os.path.exists(avatar):
+        user.get_avatar(avatar)
+
+    if not os.path.exists(avatar):
+        # https://wiki.ubuntu.com/NotificationDevelopmentGuidelines
+        # part: How do I get these slick icons
+        avatar = 'notification-message-im'
+
+    name = user.name
+    if len(name) > 10:
+        name = name[:10] + '...'
+
+    call(['notify-send', name, text, '-i', avatar, '-t', '3000', '-a', 'crazyWx'])
 
 
 if __name__ == '__main__':

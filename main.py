@@ -8,7 +8,7 @@ from logzero import logger
 from config import API_KEY
 from config import DATA_PATH
 from config import INFO_STRING, STATUS_FILE_PATH
-from utils import hitokoto, notification, is_busy
+from utils import hitokoto, notification, is_busy, music
 
 AUTO_MODE = True
 API_CALL_TIME = 0
@@ -20,7 +20,7 @@ bot = Bot(cache_path=True)
 bot.enable_puid('wxpy_puid.pkl')
 
 # 自动消除手机端的新消息小红点提醒
-# bot.auto_mark_as_read = True
+bot.auto_mark_as_read = True
 
 # 配置图灵机器人
 tuLing = Tuling(api_key=API_KEY)
@@ -39,6 +39,9 @@ logger.info('filter coach: %s', coach_group)
 @bot.register()
 def print_to_terminal(msg):
     sender = msg.member if msg.member else msg.sender
+
+    notification(sender, msg.text)
+
     logger.info('%s say: %s', sender.name, msg.text)
 
 
@@ -48,6 +51,8 @@ def reply_friend(msg):
     if len(name) > 15:
         name = name[:12] + '...'
 
+    sender = msg.member if msg.member else msg.sender
+    notification(sender, msg.text)
     logger.info('%s say: %s', name, msg.text)
 
     if not AUTO_MODE:
@@ -82,12 +87,16 @@ def reply_friend(msg):
                 logger.warning('api call time reach %s!', API_CALL_TIME)
             ret = tuLing.reply_text(msg)
 
-    logger.info('robot say: %s', ret)
+    if ret:
+        logger.info('robot say: %s', ret)
     return ret
 
 
 @bot.register(chats=Group)
 def reply_at_me(msg):
+    sender = msg.member if msg.member else msg.sender
+    notification(sender, msg.text)
+
     if not AUTO_MODE:
         return
     global coach_group, API_CALL_TIME
@@ -114,6 +123,8 @@ def reply_at_me(msg):
 @bot.register(chats=coach_group)
 def reply_coach(msg):
     sender = msg.member if msg.member else msg.sender
+    notification(sender, msg.text)
+
     logger.warning('%s say: %s', sender.name, msg.text)
     if not AUTO_MODE:
         return
@@ -126,11 +137,16 @@ def reply_coach(msg):
 
 @bot.register(chats=None, msg_types=[PICTURE, RECORDING, ATTACHMENT, VIDEO])
 def save_file(msg):
-    if not AUTO_MODE:
-        return
     logger.info('from who: %s(%s), msg: %s, filename: %s',
                 msg.chat.name, msg.chat.puid,
                 msg.text, msg.file_name)
+
+    sender = msg.member if msg.member else msg.sender
+    notification(sender, msg.type)
+
+    if not AUTO_MODE:
+        return
+
     file_name = msg.file_name
     if str(file_name).endswith('.png'):
         file_name = str(file_name)[:-3] + 'jpg'
@@ -167,8 +183,8 @@ def control(msg):
     elif text == '一言':
         return hitokoto()
     elif text == 'test':
-        logger.info('test notification.')
-        notification()
+        logger.info('test music.')
+        music()
     else:
         API_CALL_TIME += 1
         if API_CALL_TIME >= 750:
