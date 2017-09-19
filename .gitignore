@@ -5,6 +5,7 @@
 *.idea
 image/
 data/
+avatar/
 
 
 # Byte-compiled / optimized / DLL files
